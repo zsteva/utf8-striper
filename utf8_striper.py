@@ -24,18 +24,29 @@
 
 import sys
 
+cp1250chars = [ 0x9a, 0xf0, 0xe8, 0xe6, 0x9e, 0x8a, 0xd0, 0xc8, 0xc6, 0x8e ]
+
 while True:
 	byte = sys.stdin.buffer.read(1)
 	if byte == b'':
 		break
 	if byte[0] & 0xe0 == 0xc0: # utf 2 byte char
-		xxx = sys.stdin.buffer.read(1)
-		byte = b'.'
+		remaind = sys.stdin.buffer.read(1)
+		if remaind[0] & 0xc0 == 0x80:
+			byte = b'.'
+		else:
+			byte += remaind
 	elif byte[0] & 0xf0 == 0xe0: # utf 3 byte char
-		xxx = sys.stdin.buffer.read(2)
-		byte = b'.'
+		remaind = sys.stdin.buffer.read(2)
+		if remaind[0] & 0xc0 == 0x80 and remaind[1] & 0xc0 == 0x80:
+			byte = b'.'
+		else:
+			byte += remaind
 	elif byte[0] & 0xf8 == 0xf0: # utf 4 byte char
 		xxx = sys.stdin.buffer.read(3)
-		byte = b'.'
+		if remaind[0] & 0xc0 == 0x80 and remaind[1] & 0xc0 == 0x80 and remaind[2] & 0xc0 == 0x80:
+			byte = b'.'
+		else:
+			byte += remaind
 	sys.stdout.buffer.write(byte)
 
